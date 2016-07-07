@@ -1,0 +1,15 @@
+./pra.py
+./finspl3.py
+./lol.py
+./pya.py
+./fin4.py
+./importpdb.py
+./f.l
+./sh2.py
+./fspl.py
+./pr1.lstgh
+./ma.py
+./short.py
+./spl0.py
+./fin.py
+./finspl.py
