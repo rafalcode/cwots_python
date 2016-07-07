@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# list of lists
 
 lol = []
 a_list = []

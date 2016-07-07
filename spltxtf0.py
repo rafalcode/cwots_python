@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# splits a text file in a series of smaller ones of size splitLen
 import sys
 
 argquan=len(sys.argv)

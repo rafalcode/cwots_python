@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# multiprocessing approach
 import sys, subprocess, re
 from multiprocessing import Process, Queue
 from Queue import Empty
