@@ -1,18 +1,27 @@
 #!/usr/bin/env python2.7
 # Getting to know os.walk
-import os, regex
+import os, regex, sys
 
-for (dp, dn, fn) in os.walk('.'):
-    # prob "dp" means Dir Present, "dn" Dir Names (subdirectories)and "fn" File Name
-    print "len(dp)=%i, len(dn)=%i, len(fn)=%i" % (len(dp), len(dn), len(fn)),
-    # weirdly, dp gets split into letters
-    for i in (dp):
-        print "%s" % (i)
-    print "---"
-    for i in (dn):
-        print i
-    print "---"    
-    for i in (fn):
-        print i
-    print "==="    
+argquan=len(sys.argv)
+if argquan != 2:
+    print "This script requires one argument: the target directory on which you'd like the walk performed"
+    sys.exit(2)
 
+# Following variable names mean to precisely say what walk is returning
+# cwdletl: list of current working directory letters .. because that is what you get (weirdly enough)
+# subdl: list of subdirectories in CWD
+# fnl: list of filenames in CWD
+for (cwdletl, subdl, fnl) in os.walk(sys.argv[1]):
+    # print "len(cwdlets)=%i, len(subdl)=%i, len(fnl)=%i" % (len(dp), len(dn), len(fn))
+    # for i in (dp):
+    #     print "%s" % (i)
+    # so it needs to be joined.
+    rdp="".join(cwdletl) # real dp.
+    print "CWD:%s" % rdp,
+    print "; SUBDIRS: ",
+    for i in (subdl):
+        print "%s " % i,
+    print"; FILES: ",
+    for i in (fnl):
+        print "%s " % i,
+    print
