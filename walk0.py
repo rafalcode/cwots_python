@@ -18,10 +18,6 @@ for (cwdletl, subdl, fnl) in os.walk(sys.argv[1]):
     # so it needs to be joined.
     rdp="".join(cwdletl) # real dp.
     print "CWD:%s" % rdp,
-    print "; SUBDIRS: ",
-    for i in (subdl):
-        print "%s " % i,
-    print"; FILES: ",
-    for i in (fnl):
-        print "%s " % i,
+    print "; SUBDIRS: " + " ".join(["%s " % i for i in subdl]),
+    print"; FILES: " + " ".join(["%s " % i for i in fnl]),
     print
