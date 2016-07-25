@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 # exercise in handling options
 import getopt, sys
+# note also that argparse may be even a more convenient form of handling options.
 
 def main():
     try:
