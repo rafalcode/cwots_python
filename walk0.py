@@ -3,14 +3,15 @@
 import os, regex, sys
 
 argquan=len(sys.argv)
-if argquan != 2:
-    print "This script requires one argument: the target directory on which you'd like the walk performed"
+if argquan != 3:
+    print "This script requires one argument: the target directory on which you'd like the walk performed 2) target filename ending (inc. extension}"
     sys.exit(2)
 
 # Following variable names mean to precisely say what walk is returning
 # cwdletl: list of current working directory letters .. because that is what you get (weirdly enough)
 # subdl: list of subdirectories in CWD
 # fnl: list of filenames in CWD
+COU=0
 for (cwdletl, subdl, fnl) in os.walk(sys.argv[1]):
     # print "len(cwdlets)=%i, len(subdl)=%i, len(fnl)=%i" % (len(dp), len(dn), len(fn))
     # for i in (dp):
