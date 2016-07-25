@@ -1,4 +1,5 @@
 #!/usr/bin/env python2.7
+# from: http://lonelycode.com/2011/02/04/python-threading-and-queues-and-why-its-awesome/
 import threading
 import time
 
