@@ -23,8 +23,14 @@ DNRGX=re.compile(r'.+[IS]R*[0-9]+:')
 # loop through fastq list two by two.
 for i in xrange(1,lfqz):
     if FGZRGX.match(fqz[i]) is not None:
-        LL.append(fqz[i])
+        DS = [x for x in fqz[i].split('/')]
+        FS = [x for x in DS[-1].split('_')]
+        LL.append( (DS, FS) )
 
 for i in LL:
-    print "%s " % (i[0], i[1]),
-print
+    for j in i[0]:
+        print "%s " % j,
+    print
+    for j in i[1]:
+        print "%s " % j,
+    print

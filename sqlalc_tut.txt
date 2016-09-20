@@ -1,0 +1,1099 @@
+                       A step-by-step SQLAlchemy tutorial
+
+About This Tutorial
+
+   This tutorial is for SQLAlchemy version 0.2. You may notice that some
+   sections are marked "New in 0.2". If this is the first time you're
+   reading this tutorial, you can safely skip those sections. On the other
+   hand, if you read the [1]previous version of this tutorial and are now
+   trying to learn SQLAlchemy 0.2, then just search for the text "New in
+   0.2" and you'll have a lot less reading to do this time around. (Do
+   make sure to update all the demo code, though: every single file of the
+   demo code has changed, and you'll get errors if you try to run the old
+   demo code under SQLAlchemy 0.2).
+
+   If you're using SQLAlchemy version 0.3, don't worry -- everything
+   you'll learn in this tutorial still works just fine under SQLAlchemy
+   0.3. Nearly all the changes to SQLAlchemy between 0.2 and 0.3 were
+   either internal code cleanups, or else were changes to advanced
+   features that this tutorial doesn't cover. Therefore, I probably won't
+   give this tutorial a rewrite for SQLAlchemy 0.3.
+
+   Now, on with the tutorial.
+
+Getting Started
+
+   Before we install SQLAlchemy, let's make sure you have the latest
+   version of setuptools, which can make your life a lot easier. At a
+   command prompt, run:
+easy_install --help
+
+   If you get a list of commands and options, great: setuptools is
+   installed and working on your system, and you can skip to the next
+   paragraph. If you get an error message like "command not found", then
+   you'll need to install setuptools. Download [2]ez_setup.py and run it.
+   (If you're on Linux or OS X, you may need to run it as root by doing
+   "sudo python ez_setup.py").
+
+   Now that you have setuptools installed, you can install SQLAlchemy by
+   running:
+easy_install SQLAlchemy
+
+   On Linux and OS X, you may need to run this as root ("sudo easy_install
+   SQLAlchemy"). This will automatically connect to the [3]Python Package
+   Index, find the latest version of SQLAlchemy, download it, and set it
+   up in your site-packages directory.
+
+   You'll also need the latest version of pysqlite installed. Run
+   "easy_install pysqlite" (with sudo if necessary) to fetch it. On
+   Windows, that's all you need; on Mac OS X or Linux, you'll also need
+   the sqlite3 package installed. The exact details of installing a
+   package will vary from system to system: just make sure it's sqlite3
+   you're installing, and not sqlite or sqlite2.
+
+   Once you have everything installed, you're ready to begin!
+
+First Steps
+
+   Let's start with a simple SQLAlchemy program. Copy this into a text
+   editor and save it as "firststeps.py":
+from sqlalchemy import *
+
+db = create_engine('sqlite:///tutorial.db')
+
+db.echo = False  # Try changing this to True and see what happens
+
+metadata = BoundMetaData(db)
+
+users = Table('users', metadata,
+    Column('user_id', Integer, primary_key=True),
+    Column('name', String(40)),
+    Column('age', Integer),
+    Column('password', String),
+)
+users.create()
+
+i = users.insert()
+i.execute(name='Mary', age=30, password='secret')
+i.execute({'name': 'John', 'age': 42},
+          {'name': 'Susan', 'age': 57},
+          {'name': 'Carl', 'age': 33})
+
+s = users.select()
+rs = s.execute()
+
+row = rs.fetchone()
+print 'Id:', row[0]
+print 'Name:', row['name']
+print 'Age:', row.age
+print 'Password:', row[users.c.password]
+
+for row in rs:
+    print row.name, 'is', row.age, 'years old'
+
+First Steps, in detail
+
+   This code sample shows off a lot of the features of SQLAlchemy. Let's
+   go through it step-by-step.
+from sqlalchemy import *
+
+db = create_engine('sqlite:///tutorial.db')
+
+   The first step in writing SQLAlchemy code is to open a connection to
+   the database you'll be using. In SQLAlchemy, this is done by creating
+   an SQLEngine object, which knows how to talk to one particular type of
+   database (SQLite, PostgreSQL, Firebird, MySQL, Oracle...). The
+   SQLEngine object also doubles as a connection object. Behind the
+   scenes, it will create a pool of database connections and re-use them
+   automatically as needed, to keep your application running quickly. But
+   most of the time, you don't even need to think about the database
+   connections; just use the SQLEngine object that create_engine()
+   returns, and let SQLAlchemy handle the details for you.
+
+   New in 0.2: In SQLAlchemy 0.1, the syntax of create_engine() calls
+   would depend on which database engine you were using, and wasn't very
+   userfriendly. Now it's much more consistent. No matter what database
+   you're using, the create_engine() function takes a single parameter
+   that's a URI, of the form "engine://user:password@host:port/database".
+   Most of these options can be omitted; for example, if you're connecting
+   to a PostgreSQL database on the default PostgreSQL port (port 5432),
+   the URI would be something like
+   "postgres://scott:tiger@localhost/demodb". SQLite lets you omit
+   everything but the filename, so opening a file named tutorial.db in the
+   current directory becomes "sqlite:///tutorial.db". Or, to open the file
+   "/tmp/tutorial/joindemo.db", the URI becomes
+   "sqlite:////tmp/tutorial/joindemo.db". (Yes, that's four slashes in a
+   row. Two before the (empty) hostname section, then one before the
+   database section, and one final slash at the start of the path
+   "/tmp/tutorial/joindemo.db".)
+metadata = BoundMetaData(db)
+
+   Before creating our Table definitions, we need to create the object
+   that will manage them. Table definitions (what the columns are called,
+   what their data types are) are an example of "metadata" -- information
+   about your data. So the object that manages this collection of metadata
+   is called a MetaData object. There are two varietes, BoundMetaData
+   which is tied to a specific database connection, or DynamicMetaData
+   which can be created before the database connection has been
+   established.
+
+   If you don't know why you'd want to use DynamicMetaData, or if you
+   didn't really understand the previous paragraph, don't worry about it.
+   Just remember that you'll need a BoundMetaData to keep your Table
+   objects in, and move on to the rest of the tutorial.
+
+   New in 0.2: In SQLAlchemy 0.1, you'd pass the db object to your Tables;
+   and, in fact, this is still allowed; it will automatically create a
+   BoundMetaData object for you. It's better to create the BoundMetaData
+   object explicitly, though, because that makes it a lot easier to do
+   operations like metadata.create_all() to create all your tables at
+   once.
+users = Table('users', metadata,
+    Column('user_id', Integer, primary_key=True),
+    Column('name', String(40)),
+    Column('age', Integer),
+    Column('password', String),
+)
+users.create()
+
+   This should be pretty self-explanatory: we've just created a users
+   table in our database, with four columns. If the users table already
+   existed, we could instead have done:
+users = Table('users', metadata, autoload=True)
+
+   and SQLAlchemy would have automatically figured out the table's
+   structure from the database.
+i = users.insert()
+i.execute(name='Mary', age=30, password='secret')
+i.execute({'name': 'John', 'age': 42},
+          {'name': 'Susan', 'age': 57},
+          {'name': 'Carl', 'age': 33})
+
+   SQLAlchemy's SQL construction methods are beautiful. You'll almost
+   never need to write SQL by hand. Instead, you create an "SQL statement
+   object", build the SQL query you want, and call its execute() method.
+   Here we ask for an INSERT statement referencing the users table:
+i = users.insert()
+
+   Now when we do i.execute(), SQLAlchemy will generate the appropriate
+   "INSERT INTO users VALUES (...)" statement for the values we pass into
+   execute(). Notice the two different ways of executing an INSERT
+   statement. We can either pass it keyword parameters, to insert a single
+   object:
+i.execute(name='Mary', age=30, password='secret')
+
+   or else we can pass it multiple dictionaries, to insert multiple
+   objects:
+i.execute({'name': 'John', 'age': 42},
+          {'name': 'Susan', 'age': 57},
+          {'name': 'Carl', 'age': 33})
+
+   If you have any "special" characters (such as semicolons or
+   apostrophes) in your data, they will be automatically quoted for you by
+   the SQLEngine object, so you don't have to worry about quoting. This
+   also means that unless you deliberately bypass SQLAlchemy's quoting
+   mechanisms, SQL-injection attacks are basically impossible.
+
+   You may have also noticed that we didn't have to specify all the
+   columns of the database. Any columns we didn't specify will get filled
+   with NULL, except for the primary key, which will automatically get a
+   unique value.
+s = users.select()
+rs = s.execute()
+
+   Like INSERT statements, SELECT statements are also done by creating a
+   statement object and calling its execute() method. This particular
+   statement is the basic "SELECT * FROM users" with no WHERE clause.
+   Later on we'll see how to do WHERE clauses, or only return data from
+   certain columns, or JOIN two (or more) tables together.
+
+   Calling execute() on a SELECT statement object will return a result
+   set, which has fetchone() and fetchall() methods. As you'd expect,
+   fetchone() returns a single row, while fetchall() returns a list of
+   rows. The rows returned aren't simple tuples or dictionaries, but
+   intelligent row objects, as can be seen below:
+row = rs.fetchone()
+print 'Id:', row[0]
+print 'Name:', row['name']
+print 'Age:', row.age
+print 'Password:', row[users.c.password]
+
+   Here we see some of the various ways you can access the data in a row
+   object. First, you can pretend it's a tuple and access its columns by
+   position. SQLAlchemy guarantees that the column order returned from a
+   "SELECT * FROM (table)" statement will be the same as the order in
+   which the columns were declared in that table, so here we know that
+   row[0] will be the user_id column. We can also access the row as if it
+   were a dictionary (row['name']). Next, my favorite: SQLAlchemy lets us
+   access the columns as if they were attributes of the row object. (Some
+   simple __getattr__() magic behind the scenes makes this work). And
+   finally, we can even use the actual Column objects themselves as keys
+   to lookup results from a row. You probably won't use this very often,
+   but it can be extremely useful in some circumstances.
+for row in rs:
+    print row.name, 'is', row.age, 'years old'
+
+   Finally, we see that we can also iterate through the result set via a
+   simple for loop. This is especially useful when you expect your SELECT
+   query to return a huge result set that would be too large to load into
+   memory: the for loop will only fetch one row at a time from the
+   database.
+
+Select Statements
+
+   Now let's take a little time to examine some of the various ways in
+   which we can select rows from our database. There are lots of
+   conditions you might want to put in the WHERE clause of a SELECT
+   statement, and SQLAlchemy makes most of those easy.
+
+   Copy the following code into "selectdemo.py":
+from sqlalchemy import *
+
+# Let's re-use the same database as before
+db = create_engine('sqlite:///tutorial.db')
+
+db.echo = True  # We want to see the SQL we're creating
+
+metadata = BoundMetaData(db)
+
+# The users table already exists, so no need to redefine it. Just
+# load it from the database using the "autoload" feature.
+users = Table('users', metadata, autoload=True)
+
+def run(stmt):
+    rs = stmt.execute()
+    for row in rs:
+        print row
+
+# Most WHERE clauses can be constructed via normal comparisons
+s = users.select(users.c.name == 'John')
+run(s)
+s = users.select(users.c.age < 40)
+run(s)
+
+# Python keywords like "and", "or", and "not" can't be overloaded, so
+# SQLAlchemy uses functions instead
+s = users.select(and_(users.c.age < 40, users.c.name != 'Mary'))
+run(s)
+s = users.select(or_(users.c.age < 40, users.c.name != 'Mary'))
+run(s)
+s = users.select(not_(users.c.name == 'Susan'))
+run(s)
+
+# Or you could use &, | and ~ -- but watch out for priority!
+s = users.select((users.c.age < 40) & (users.c.name != 'Mary'))
+run(s)
+s = users.select((users.c.age < 40) | (users.c.name != 'Mary'))
+run(s)
+s = users.select(~(users.c.name == 'Susan'))
+run(s)
+
+# There's other functions too, such as "like", "startswith", "endswith"
+s = users.select(users.c.name.startswith('M'))
+run(s)
+s = users.select(users.c.name.like('%a%'))
+run(s)
+s = users.select(users.c.name.endswith('n'))
+run(s)
+
+# The "in" and "between" operations are also available
+s = users.select(users.c.age.between(30,39))
+run(s)
+# Extra underscore after "in" to avoid conflict with Python keyword
+s = users.select(users.c.name.in_('Mary', 'Susan'))
+run(s)
+
+# If you want to call an SQL function, use "func"
+s = users.select(func.substr(users.c.name, 2, 1) == 'a')
+run(s)
+
+# You don't have to call select() on a table; it's got a bare form
+s = select([users], users.c.name != 'Carl')
+run(s)
+s = select([users.c.name, users.c.age], users.c.name != 'Carl')
+run(s)
+
+# This can be handy for things like count()
+s = select([func.count(users.c.user_id)])
+run(s)
+# Here's how to do count(*)
+s = select([func.count("*")], from_obj=[users])
+run(s)
+
+   Most of this should be pretty self-explanatory, and should give you an
+   idea of what's possible. A few notes:
+# Or you could use &, | and ~ -- but watch out for priority!
+s = users.select((users.c.age < 40) & (users.c.name != 'Mary'))
+run(s)
+s = users.select((users.c.age < 40) | (users.c.name != 'Mary'))
+run(s)
+s = users.select(~(users.c.name == 'Susan'))
+run(s)
+
+   In Python, the & (and), | (or), and ~ (not) operators have a higher
+   priority than comparison operators like == and !=. So if you want to
+   use the &, | and ~ operators, you have to be careful to wrap the other
+   clauses in parentheses. If you forget the parentheses, you'll be
+   surprised by the results:
+s = users.select(users.c.age < 40 & users.c.name != 'Mary')
+
+   will be interpreted as:
+s = users.select(users.c.age < (40 & users.c.name) != 'Mary')
+
+   which will almost certainly not return the results you were expecting.
+
+   Finally, let's take a little bit of a closer look at the bare form of
+   select():
+# You don't have to call select() on a table; it's got a bare form
+s = select([users], users.c.name != 'Carl')
+run(s)
+s = select([users.c.name, users.c.age], users.c.name != 'Carl')
+run(s)
+
+   Remember that the first argument to the bare form of select() is a
+   list. If you forget and pass it a table, you'll get a TypeError
+   complaining about iteration over a non-sequence.
+# This can be handy for things like count()
+s = select([func.count(users.c.user_id)])
+run(s)
+
+   When there's a table involved in the select() call (e.g., when you're
+   counting the occurrences of a single column, such as users.c.user_id),
+   select() knows what to do. But if you're trying to do something like a
+   COUNT(*), the Select object won't be able to guess which table you want
+   to select from unless you explicitly pass the from_obj parameter, like
+   so:
+# Here's how to do count(*)
+s = select([func.count("*")], from_obj=[users])
+run(s)
+
+   Note that from_obj expects a list, just like the "what to select"
+   parameter does. Here, too, if you forget and pass a bare table, you'll
+   get a TypeError about iteration over a non-sequence.
+
+Joins
+
+   At this point, you're probably wondering about using multiple tables in
+   a single select() statement. Wonder no more. Copy the following into
+   "joindemo.py":
+from sqlalchemy import *
+
+db = create_engine('sqlite:///joindemo.db')
+
+db.echo = True
+
+metadata = BoundMetaData(db)
+
+users = Table('users', metadata,
+    Column('user_id', Integer, primary_key=True),
+    Column('name', String(40)),
+    Column('age', Integer),
+)
+users.create()
+
+emails = Table('emails', metadata,
+    Column('email_id', Integer, primary_key=True),
+    Column('address', String),
+    Column('user_id', Integer, ForeignKey('users.user_id')),
+)
+emails.create()
+
+i = users.insert()
+i.execute(
+    {'name': 'Mary', 'age': 30},
+    {'name': 'John', 'age': 42},
+    {'name': 'Susan', 'age': 57},
+    {'name': 'Carl', 'age': 33}
+)
+i = emails.insert()
+i.execute(
+    # There's a better way to do this, but we haven't gotten there yet
+    {'address': 'mary@example.com', 'user_id': 1},
+    {'address': 'john@nowhere.net', 'user_id': 2},
+    {'address': 'john@example.org', 'user_id': 2},
+    {'address': 'carl@nospam.net', 'user_id': 4},
+)
+
+def run(stmt):
+    rs = stmt.execute()
+    for row in rs:
+        print row
+
+# This will return more results than you are probably expecting.
+s = select([users, emails])
+run(s)
+
+# The reason is because you specified no WHERE clause, so a full join was
+# performed, which returns every possible combination of records from
+# tables A and B. With an appropriate WHERE clause, you'll get the
+# restricted record set you really wanted.
+s = select([users, emails], emails.c.user_id == users.c.user_id)
+run(s)
+
+# If you're interested in only a few columns, then specify them explicitly
+s = select([users.c.name, emails.c.address],
+           emails.c.user_id == users.c.user_id)
+run(s)
+
+# There are also "smart" join objects that can figure out the correct join
+# conditions based on the tables' foreign keys
+s = join(users, emails).select()
+run(s)
+
+# If you want all the users, whether or not they have an email address,
+# then you want an "outer" join.
+s = outerjoin(users, emails).select()
+run(s)
+
+# Order of outer joins is important! Default is a "left outer join", which
+# means "all records from the left-hand table, plus their corresponding
+# values from the right-hand table, if any". Notice how this time, Susan's
+# name will *not* appear in the results.
+s = outerjoin(emails, users).select()
+run(s)
+
+   That's enough for a taste. More information can be found in the [4]SQL
+   Construction section of the SQLAlchemy documentation. Now let's move on
+   to the really interesting part: mapping your data objects to SQL
+   database rows.
+
+Mapping your objects to SQL rows
+
+   Now for the really interesting part: mapping your objects onto the
+   database.
+
+   In other object-relational mappers such as SQLObject, the table
+   definition also doubles as the class whose instances are rows of data
+   from the table. SQLAlchemy, on the other hand, makes a strict
+   distinction between the table definition and the data class. You first
+   create the table definition, then create an (empty) class definition
+   that will hold your data objects, and then create a mapper that will
+   map that class onto the database. It's perhaps easier to show how this
+   works than to explain it. Copy the following into "mapper1.py":
+from sqlalchemy import *
+
+db = create_engine('sqlite:///joindemo.db')
+
+db.echo = True
+
+metadata = BoundMetaData(db)
+
+users = Table('users', metadata, autoload=True)
+emails = Table('emails', metadata, autoload=True)
+
+# These are the empty classes that will become our data classes
+class User(object):
+    pass
+class Email(object):
+    pass
+
+usermapper = mapper(User, users)
+emailmapper = mapper(Email, emails)
+
+session = create_session()
+
+mary = session.query(User).selectfirst(users.c.name=='Mary')
+mary.age += 1
+
+session.flush()
+
+fred = User()
+fred.name = 'Fred'
+fred.age = 37
+
+print "About to flush() without a save()..."
+session.flush()  # Will *not* save Fred's data yet
+
+session.save(fred)
+print "Just called save(). Now flush() will actually do something."
+session.flush()  # Now Fred's data will be saved
+
+session.delete(fred)
+session.flush()
+
+   Let's break this down piece-by-piece to see what's going on here.
+from sqlalchemy import *
+
+db = create_engine('sqlite:///joindemo.db')
+
+db.echo = True
+
+metadata = BoundMetaData(db)
+
+   Here we're using the same SQLite database that we created in the join
+   demo, which contains users and email addresses. Unless you've deleted
+   that file, the data (four users and four email addresses) should still
+   be there as well. We set echo to True so that the SQL will be printed
+   out at each step.
+users = Table('users', metadata, autoload=True)
+emails = Table('emails', metadata, autoload=True)
+
+   Because the users and emails tables are already in the database, we
+   don't have to specify them again; we can just let SQLAlchemy fetch
+   their definitions from the database.
+# These are the empty classes that will become our data classes
+class User(object):
+    pass
+class Email(object):
+    pass
+
+   Note that your data classes must be new-style classes (e.g., derived
+   from the base class object). If they aren't, SQLAlchemy will raise an
+   ArgumentError exception when you try to create the mapper. If you don't
+   know what the difference between new-style classes and old-style
+   classes is, don't worry about it; just get in the habit of deriving all
+   your classes either from object or from another base class that
+   descends from object. Most of Python's object-oriented features work
+   much better on classes that ultimately derive from object, and
+   SQLAlchemy makes heavy use of those features.
+
+   Moving on:
+usermapper = mapper(User, users)
+emailmapper = mapper(Email, emails)
+
+   This is where all the magic happens. The mapper() function takes a
+   minimum of two parameters: first the data class to modify, and then the
+   table object onto which that data class should be mapped. The data
+   class will have attributes automatically added to it that correspond to
+   the columns of your database table. Thus, the User class now has
+   User.user_id, User.name, User.age, and User.password. The Email class
+   now has Email.email_id, Email.address, and Email.user_id.
+session = create_session()
+
+   SQLAlchemy is capable of automatically keeping track of the data
+   objects you create, and any changes you make to their attributes. This
+   is done using Session objects, which do a lot of the behind-the-scenes
+   work for you. Usually, you'll only need one Session object. SQLAlchemy
+   could create it for you, but there are times when you'll want to be
+   able to access the Session object directly. So SQLAlchemy follows the
+   Python principle that "Explicit is better than implicit" and requires
+   you to create your own Session object. At least, that's the default
+   behavior: there are advanced features that let you have a "default
+   Session context", and sometimes that's exactly what you want. However,
+   it's best to learn the explicit way of doing things first; learning the
+   advanced features can wait until you're comfortable with SQLAlchemy's
+   way of doing things.
+
+   New in 0.2: Session objects replace the objectstore object from
+   SQLAlchemy 0.1. The objectstore.commit() method (whose name was
+   confusingly similar to the commit() method of database transactions)
+   has been replaced by session.flush(). Session objects also have a
+   couple of other differences, which we'll get to in a moment.
+mary = session.query(User).selectfirst(users.c.name=='Mary')
+
+   Now that we've created a Session object, we can use it to load some
+   data from our database. Now at first glance, the above line of code
+   looks a little overcomplicated. You might be wondering why it isn't
+   something simpler, like "session.selectfirst(users.c.name=='Mary')".
+   The answer is that SQLAlchemy needs to know what class you're trying to
+   create instances of. Here it might be possible to guess based on the
+   fact that the selectfirst() criteria are specifying a column from the
+   users table. But there's a Python principle that says, "In the face of
+   ambiguity, refuse the temptation to guess." Because what if that guess
+   is wrong? What if you're trying to load all the email addresses
+   belonging to people named Mary? By forcing you to be explicit about
+   which data class you want, SQLAlchemy avoids the possibility of
+   guessing wrong.
+
+   Incidentally, the session.query(YourClass) call creates a Query object
+   that you could save and reuse later. This can save a lot of typing if
+   you have multiple select() calls to make.
+
+   New in 0.2: In SQLAlchemy 0.1, you would have called selectfirst() on
+   the usermapper object. In SQLAlchemy 0.2, select() (and all related
+   functions such as selectfirst()) are called on Query objects instead.
+mary.age += 1
+
+   Now that we have an instance of the data class (in the object "mary"),
+   we can manipulate its attributes just like a normal object. SQLAlchemy
+   will keep track of the changes we make, but won't actually send them to
+   the database right away. To send our changes to the database, we need
+   to ...
+session.flush()
+
+   ... call the session.flush() method. This will take all the changes
+   we've made to our data objects, and "flush" those changes out to the
+   database. If we've made multiple changes, some of which depend on other
+   changes (e.g., adding a new user and several email addresses for that
+   user), SQLAlchemy is smart enough to write the SQL statements in the
+   correct order. SQLAlchemy also wraps the entire set of SQL statements
+   in a database transaction, as you'll see if you examine the generated
+   SQL code when you run this example.
+
+   If you want to control the database transactions yourself (maybe
+   because you want to accumulate several calls to session.flush() before
+   committing the transaction), you can. See the Transactions section,
+   below, for details.
+
+   New in 0.2: The session.flush() function used to be called
+   objectstore.commit(). The method name changed from commit() to flush()
+   in 0.2 because commit() sounded like what you do to a database
+   transaction, and it was causing some people to confuse SQLAlchemy
+   sessions and database transactions, which are two completely separate
+   concepts.
+fred = User()
+fred.name = 'Fred'
+fred.age = 37
+
+   Here we're creating a new instance of our data class, User. This will
+   eventually result in a new database row once we call session.flush().
+print "About to flush() without a save()..."
+session.flush()  # Will *not* save Fred's data yet
+
+   Look at the output from running this example. Notice that this
+   session.flush() call resulted in no database activity whatsoever, even
+   though we just created a new instance of our data class, which is
+   supposed to automatically create a new row in our database table. Why
+   didn't session.flush() do what it's supposed to do?
+
+   See if you can figure it out before proceeding to the next section.
+   Hint: remember that you're not necessarily limited to having only one
+   Session object around at any given time, and that "Explicit is better
+   than implicit."
+session.save(fred)
+print "Just called save(). Now flush() will actually do something."
+session.flush()  # Now Fred's data will be saved
+
+   Now we see why the previous session.flush() call didn't actually save
+   Fred's data to the database. The fred object wasn't yet associated with
+   any Session objects! Explicit is better than implicit. By calling
+   session.save(fred), we explicitly made session responsible for managing
+   the fred instance. From now on, any changes made to the fred instance
+   will be tracked by our session instance. That includes fred's current
+   state of "instance has been created, but database row has not yet been
+   created". Any such "pending" objects will be flushed to the database at
+   the next call to session.flush(), as you can see from the output of
+   running the example.
+
+   As was mentioned before, there are advanced features that let you have
+   a "default Session context". If you're using those features, then any
+   newly-created data instances (like our fred instance above) would be
+   automatically registered with the Session object from the current
+   context, and there'd be no need to call session.save(fred) -- and
+   therefore, the first session.flush() call in our above example would
+   have created a new row in the database.
+
+   However, it's usually best to learn the explicit way of doing things
+   first; learning the implicit way of doing things can wait until you're
+   comfortable with the explicit way. Then, when you hit the limits of the
+   implicit way and need to drop into "explicit mode" for a while, you
+   won't be stepping outside the limits of your comfort zone. It's much
+   harder to go the other way around: if you get too used to using
+   implicit, default Session objects, then it will be hard to remember how
+   to use them explicitly. This can lead to mistakes like calling flush()
+   without calling save() first, followed by much head-scratching as you
+   try to figure out why the database doesn't contain Fred's newly-created
+   data.
+
+   New in 0.2: SQLAlchemy 0.1 used implicit Session objects, so calling
+   objectstore.commit() after creating the fred instance would have run an
+   INSERT SQL statement. In SQLAlchemy 0.2, you need an explicit
+   session.save() call first, to associate the instance with one
+   particular session. Read the above three paragaphs for more details.
+session.delete(fred)
+session.flush()
+
+   Now that we've looked at how to do INSERTs by creating new object
+   instances, let's look at how to do DELETEs. DELETEs, like INSERTs, are
+   done by calling a method on the Session object. Note that this does not
+   delete the fred instance from your own code, it just flags it as
+   "deleted" in the Session object's internal object tracker. The fred
+   instance will still be around, accessible to your own code, until you
+   run a "del fred" statement.
+
+   New in 0.2: In SQLAlchemy 0.1, the delete() method used to be called on
+   the data class or on the mapper. In SQLAlchemy 0.2, you call delete()
+   on the Session instance instead.
+
+Transactions
+
+   If you want to control the database transactions yourself, instead of
+   letting SQLAlchemy do it for you, you can obtain a Transaction object
+   by calling session.create_transaction(). You can then call commit() or
+   rollback() on the Transaction object. This allows you to safely do
+   things like the following:
+transaction = session.create_transaction()
+try:
+    # Do some work here that might fail
+    session.flush()
+    # Do some more work here that might fail
+    session.flush()
+    # Success, commit everything
+    transaction.commit()
+except:
+    # Make sure the transaction is rolled back ...
+    transaction.rollback()
+    # ... then propagate the error upwards to be handled elsewhere
+    raise
+
+Data mapping, continued
+
+   Remember how, in the joindemo.py tutorial, one of the comments said:
+# There's a better way to do this, but we haven't gotten there yet
+
+   Well, now's the time to look at the better way to handle one-to-many
+   and many-to-many relations. Copy the following into "mapper2.py":
+from sqlalchemy import *
+
+db = create_engine('sqlite:///joindemo.db')
+db.echo = True
+metadata = BoundMetaData(db)
+users = Table('users', metadata, autoload=True)
+emails = Table('emails', metadata, autoload=True)
+session = create_session()
+
+# Let's give our User and Email classes a little more smarts
+class User(object):
+    def __init__(self, name=None, age=None, password=None):
+        self.name = name
+        self.age = age
+        self.password = password
+    def __repr__(self):
+        return self.name
+class Email(object):
+    def __init__(self, address=None):
+        self.address = address
+    def __repr__(self):
+        return self.address
+
+# Here we look at several alternate ways to do the same thing. Try
+# running this program multiple times, enabling a different one of
+# these code blocks each time.
+
+# Let's look at several ways to do one-to-many relationships.
+
+# We create the Email mapper first...
+emailmapper = mapper(Email, emails)
+# ... so that we can use it in the User mapper
+usermapper = mapper(User, users, properties={
+    'emails': relation(emailmapper),  # Here's where the magic happens
+})
+mary = session.query(User).get_by(name='Mary')
+print mary.emails
+
+# If we try to create multiple mappers associated with a single data
+# class, we have to specify which one is the "primary" mapper associated
+# with the class. Since we're demonstrating how to create one-to-many
+# relationships in multiple different ways, it's simplest to just clear
+# all the mappers and start over.
+clear_mappers()
+
+
+# We could also use the data class instead of the mapper as the parameter
+# to relation()
+emailmapper = mapper(Email, emails)
+usermapper = mapper(User, users, properties={
+    'emails': relation(Email),
+})
+mary = session.query(User).get_by(name='Mary')
+print mary.emails
+
+clear_mappers()
+
+
+# In fact, we don't really need to keep a reference to the mapper object
+# around at all. Under most circumstances, we can just throw away the
+# object returned by mapper(). SQLAlchemy keeps track of a data class's
+# primary mapper behind the scenes, so we don't need to hold a reference
+# to it.
+mapper(Email, emails)
+mapper(User, users, properties={
+    'emails': relation(Email),
+})
+mary = session.query(User).get_by(name='Mary')
+print mary.emails
+
+clear_mappers()
+
+
+# Notice that the order in which you create the mappers can be important.
+# If you want to call relation(), you need to pass it a class that's
+# already been mapped to a database table, or else SQLAlchemy won't be
+# able to figure out which table the ForeignKey relationships should refer
+# to. (Remember: "In the face of ambiguity, refuse the temptation to guess.")
+try:
+    usermapper = mapper(User, users, properties={
+        'emails': relation(Email),
+    })
+except exceptions.InvalidRequestError:
+    print "Ignoring the deliberately-provoked error and moving on..."
+
+clear_mappers()
+
+
+# What if we also want a "user" property on the Email class? Here's one
+# way to do it.
+emailmapper = mapper(Email, emails)  # Save the mapper, to use it later
+usermapper = mapper(User, users, properties={
+    'emails': relation(Email),
+})
+# Now that the User mapper has been created, we can use it in a call
+# to relation()
+emailmapper.add_property('user', relation(User))
+john = session.query(User).get_by(name='John')
+print john.emails
+carl_address = session.query(Email).get_by(address='carl@nospam.net')
+print carl_address.user
+
+clear_mappers()
+
+
+# There's a handy "backref" feature that will do the above for you
+emailmapper = mapper(Email, emails)
+usermapper = mapper(User, users, properties={
+    'emails': relation(Email, backref='user'),
+})
+# No need to call add_property(), it's already been done
+john = session.query(User).get_by(name='John')
+print john.emails
+carl_address = session.query(Email).get_by(address='carl@nospam.net')
+print carl_address.user
+
+clear_mappers()
+
+
+# Order doesn't actually matter when you use backref: you can create the
+# "one" side of the one-to-many relationship first, or the "many" side of
+# the one-to-many relationship first, whichever way seems more natural
+# to you.
+usermapper = mapper(User, users)
+emailmapper = mapper(Email, emails, properties={
+    'user': relation(User, backref='emails'),
+})
+john = session.query(User).get_by(name='John')
+print john.emails
+carl_address = session.query(Email).get_by(address='carl@nospam.net')
+print carl_address.user
+
+clear_mappers()
+
+
+# If you've created a relation(), you can now use object references
+# instead of object ID's to manage the relationship, and it all works
+# just like you'd expect it to work.
+emailmapper = mapper(Email, emails)
+usermapper = mapper(User, users, properties={
+    'emails': relation(Email, backref='user'),
+})
+
+harry = User(name='Harry', age=47)
+em1 = Email('harry@nowhere.com')
+em2 = Email('harry@example.org')
+em1.user = harry  # Properly updates the harry.emails property
+harry.emails.append(em2)  # Properly sets em2.user
+# Let's prove that harry.emails and em2.user were properly set
+print em2.user
+print harry.emails
+
+session.save(harry)
+session.flush()
+
+clear_mappers()
+
+
+# Finally, let's demonstrate some other clever features
+emailmapper = mapper(Email, emails)
+usermapper = mapper(User, users, properties={
+    'emails': relation(Email, backref='user'),
+})
+
+# If a relation has been defined, then get_by and select_by calls
+# can do the correct joins automatically
+print session.query(User).get_by(address='mary@example.com')
+print session.query(Email).select_by(age=42)
+# This will only work if the column you're looking for is *not*
+# present in the "original" class, but is present in one of its
+# relations. For example, the following does *not* do a join to the
+# User table, but gets the user_id value from the Email table. Notice
+# the difference in the SQL that's printed.
+print session.query(Email).select_by(user_id=2)
+
+   Most of this is pretty self-explanatory. The relation() function is
+   where all the magic happens. As you can see from the above example, it
+   creates a property on the data class which will act like a list or a
+   single object, as appropriate. When you're in the User class, reading
+   the emails property, you're looking from the "one" side to the "many"
+   side of the one-to-many relationship, so the property acts like a list.
+   When you're in the Email class and reading the user property, you're
+   looking from the "many" side to the "one" side of the relationship, so
+   the property acts like a reference to a single object. The property has
+   both getter and setter methods, so you can run code like "em1.user =
+   harry" and the correct things will happen.
+
+   A quick note on the get_by() and select_by() functions we're using
+   above. These are shorthand functions that take keyword arguments
+   referring to the columns in the table we're selecting from. This lets
+   you write "get_by(name='Mary')" instead of
+   "selectfirst(users.c.name=='Mary')". If you specify multiple keyword
+   arguments, they'll be joined together with AND. However, keep in mind a
+   pretty severe limitation of the get_by() and select_by() functions,
+   that comes directly from their use of Python keyword arguments. Keyword
+   arguments are always in the form "name=value", which means that if you
+   want to do anything other than an equality comparison, you need to use
+   the full column name. E.g., "get_by(age<=39)" won't work; you need to
+   do "selectfirst(users.c.name <= 39)" instead.
+
+   One final note: notice that in the penultimate example, when we created
+   a new user Harry with two email addresses, we didn't call em1.save() or
+   em2.save(). And yet both Email instances were also saved. This
+   demonstrates how SQLAlchemy tracks object dependencies for you. The
+   newly-created User instance held two references to Email instances in
+   its emails property; therefore, the Email instances were dependent on
+   their "parent" object (the User instance) and needed to be written out
+   to the database at the same time. Notice also that the User object was
+   created first, then the two dependent Email objects. That's because
+   they needed to know the userid for Harry's newly-created database row,
+   in order to set their own userid values properly. SQLAlchemy is very
+   smart about dependency tracking, and will generally figure out the
+   right order in which to do things. And if you have a very complicated
+   example that SQLAlchemy can't figure out correctly, the author of
+   SQLAlchemy considers that a bug and asks that you report it on the
+   SQLAlchemy mailing list.
+
+   New in 0.2: As in the selectdemo.py example, we call select() functions
+   on the Session object instead of on the mapper, via
+   session.query(DataClass). That means that we often don't need to keep a
+   reference to the mapper around, and makes it possible to simply throw
+   away the results of the mapper() function call. It also means that the
+   assign_mapper() function is less useful, so assign_mapper() isn't
+   covered in this version of the tutorial.
+
+Data mapping, part three: many-to-many relationships
+
+   There's one more item to cover. We've looked at one-to-many
+   relationships, but we also need to look at many-to-many relationships.
+   As you probably know already, many-to-many relationships in databases
+   are handled by a third table that holds information about the relation.
+   E.g., if you have an "articles" table and a "keywords" table, and you
+   want to be able to associate keywords with articles, you'd need a
+   many-to-many relationship. One-to-many wouldn't work, because one
+   article might need to be tagged with several different keywords, and
+   the same keyword might be used to tag several articles; so this is a
+   classic many-to-many relationship. Thus, you'd use a third table with
+   just two columns, "article_id" and "keyword_id", to keep track of the
+   associations. By convention, such a table is usually named with the
+   names of the two tables it references, separated by an underscore.
+   Thus, the table structure in the following example (call it
+   "manytomany.py"):
+from sqlalchemy import *
+db = create_engine('sqlite:///keywords.db')
+db.echo = True
+metadata = BoundMetaData(db)
+session = create_session()
+
+articles = Table('articles', metadata,
+    Column('article_id', Integer, primary_key = True),
+    Column('headline', String(150)),
+    Column('body', String),
+)
+
+keywords = Table('keywords', metadata,
+    Column('keyword_id', Integer, primary_key = True),
+    Column('keyword_name', String(50)),
+)
+
+association = Table('articles_keywords', metadata,
+    Column('keyword_id', Integer, ForeignKey('articles.article_id')),
+    Column('article_id', Integer, ForeignKey('keywords.keyword_id')),
+)
+
+# Handy feature: create all the tables with one function call
+metadata.create_all()
+
+class Article(object):
+    def __init__(self, headline=None, body=None):
+        self.headline = headline
+        self.body = body
+    def __repr__(self):
+        return 'Article %d: "%s"' % (self.article_id, self.headline)
+
+class Keyword(object):
+    def __init__(self, name=None):
+        self.keyword_name = name
+    def __repr__(self):
+        return self.keyword_name
+
+# To create a many-to-many relation, specify the association table as
+# the "secondary" keyword parameter to mapper()
+mapper(Article, articles)
+mapper(Keyword, keywords, properties = {
+    'articles': relation(Article, secondary=association, backref='keywords'),
+})
+
+a1 = Article(headline="Python is cool!", body="(to be written)")
+a2 = Article(headline="SQLAlchemy Tutorial", body="You're reading it")
+session.save(a1)
+session.save(a2)
+
+k_tutorial = Keyword('tutorial')
+k_cool = Keyword('cool')
+k_unfinished = Keyword('unfinished')
+
+a1.keywords.append(k_unfinished)
+k_cool.articles.append(a1)
+k_cool.articles.append(a2)
+# Or:
+k_cool.articles = [a1, a2]  # This works as well!
+a2.keywords.append(k_tutorial)
+
+# Now we write all this out to the database in one single step, and
+# SQLAlchemy automatically figures out the correct order for the SQL
+# statements. Notice also how we didn't need to save the Keyword
+# instances, because a dependency relationship was set up when we
+# associated them with their articles just now.
+session.flush()
+
+print a1, a1.keywords
+print a2, a2.keywords
+print k_tutorial, k_tutorial.articles
+print k_cool, k_cool.articles
+print k_unfinished, k_unfinished.articles
+
+   Again, the code pretty much speaks for itself. If you pass the
+   association table as the second parameter to mapping(), and SQLAlchemy
+   sees that it's in the correct format (it has only two columns, each of
+   which is a foreign key to one of the tables involved in the relation),
+   it will automatically set up a many-to-many relationship for you.
+
+   One thing you may be interested in is the handy metadata.create_all()
+   method. It will automatically figure out the dependency relationships
+   between your tables, and create them in the proper order. It will also
+   detect if the tables have already been created, and not try to
+   re-create them a second time.
+
+   If you want to hold more data in the association object (for example,
+   maybe you want to record the exact date and time when the article was
+   tagged with any given keyword), it's slightly more complicated. The
+   SQLAlchemy documentation has a good explanation of the process at the
+   bottom of the [5]Data Mapping page. That whole page, in fact, is well
+   worth reading, since there are several other features of data mapping
+   that I glossed over or left out entirely, in order to keep the size of
+   this tutorial manageable. And once you've grasped those concepts, you
+   can move on to the [6]Advanced Data Mapping section, which covers
+   subjects like mapping a table onto itself (useful for tracking
+   manager/subordinate relationships in an Employees table, for example).
+
+   New in 0.2: The create_all() function is new. Notice also that you need
+   to explicitly save() the newly-created Article objects so that
+   session.flush() will flush them to the database.
+
+Conclusion
+
+   Hopefully this has given you a taste of what using SQLAlchemy feels
+   like. The examples in this tutorial should be enough to give you a head
+   start in writing your own applications. When you need more advanced
+   features beyond what we've covered here, check out the extensive
+   [7]SQLAlchemy documentation. Just about everything you'll need is
+   there; and if you still don't find what you're looking for, join the
+   [8]SQLAlchemy mailing list and ask!
+
+References
+
+   1. http://www.rmunn.com/sqlalchemy-tutorial/tutorial-0.1.html
+   2. http://peak.telecommunity.com/dist/ez_setup.py
+   3. http://cheeseshop.python.org/pypi
+   4. http://www.sqlalchemy.org/docs/sqlconstruction.myt
+   5. http://www.sqlalchemy.org/docs/datamapping.myt
+   6. http://www.sqlalchemy.org/docs/adv_datamapping.myt
+   7. http://www.sqlalchemy.org/docs/index.myt
+   8. http://www.sqlalchemy.org/community.myt
