@@ -13,14 +13,9 @@ if argquan != 2:
 # fnl: list of filenames in CWD
 COU=0
 # incredible the CWD is returned as a list of letters!
-for cwdletl, subdl, fnl in os.walk(sys.argv[1]):
-    # print "len(cwdlets)=%i, len(subdl)=%i, len(fnl)=%i" % (len(dp), len(dn), len(fn))
-    # for i in (dp):
-    #     print "%s" % (i)
-    # so it needs to be joined.
-    # rdp="".join(cwdletl) # real dp.
-    # print "CWD:%s" % rdp,
-    print "CWD:%s" % cwdletl,
-    print "; SUBDIRS: " + " ".join(["%s " % i for i in subdl]),
-    print"; FILES: " + " ".join(["%s " % i for i in fnl]),
-    print
+for dirp, subdz, flz in os.walk(sys.argv[1]):
+    print "CWD: %s |" % dirp,
+    print "SUBDIRS: " + " ".join(["%s " % i for i in subdz]),
+    print"| FILES: " + " ".join(["%s " % i for i in flz])
+
+# note use of mnemonic postfix "z" to denote multiple. Implication is that a list is required for it.
