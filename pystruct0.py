@@ -27,10 +27,14 @@ class Bunch:
 #     L.append(Bunch(f1=i,f2=i*2)
 # the reason would seem to stem fromt he fact that the class is not instantiated in python's real sense
     
-# no quoting: look!
-L2=[Bunch(f1=i+2,f2=i*2) for i in xrange(3,5)]
-print L2[1].f2
 # b0=Bunch(f1=4,f2=19)
 # print 2*b0.f2
 # L3=[B0(i+2,i*2) for i in xrange(3,5)]
 # print L3[1][1]
+
+#OK, so what works here? This! (note the lack of quoting).
+L2=[Bunch(f1=i+2,f2=i*2) for i in xrange(3,5)]
+print L2[1].f2
+# So what you have there is bunch which will accept any keywords (member names) to be memebers of its class
+# so it's a struct, sort of.
+
