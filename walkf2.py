@@ -72,12 +72,21 @@ for I in DL[PATH]:
         if J == I[0]:
             DL2[J].append("".join([K for K in I]))
 
+# Procedure: Ensure right pair order
+# So unfortunately we cannot depend on the pairs being sorted in relation to each other.
+# So, we'll go through every second and third entry, compare them lexicographically, and switch their positions
+# we are a bit stuck if lexicographically it doesn't work that way i.e. left shoul dbe econd, and right first.
+# using pythons well-known ability to do this, i.e.
+# mylist[1],mylist[0] = mylist[0, mylist[1]
 for J in DL2:
-    print "%s: " % J,
-    for K in DL2[J]:
-        print "%s " % K,
-    print
+    JLEN=len(DL2[J])
+    J3L=JLEN/3
+    for I in xrange(J3L):
+        if(DL2[J][I*3+1]>DL2[J][I*3+2]):
+            DL2[J][I*3+2], DL2[J][I*3+1] = DL2[J][I*3+1], DL2[J][I*3+2]
 
+for J in DL2:
+    print "%s: %s" % (J, " ".join([I for I in DL2[J]]))
 
 # NDL={} # new dict of lists
 # for M in UIST:
