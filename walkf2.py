@@ -9,7 +9,7 @@ if argquan != 2:
 
 PATH=sys.argv[1]
 FLEXT='.fastq.gz' # file extension of interest
-FLEXT='.txt' # file extension of interest
+# FLEXT='.txt' # file extension of interest
 r=regex.compile(r'(?:([/_.])+)')
 
 # what follows is a list comprehension of a loop over the files in a subdirectory
@@ -28,11 +28,82 @@ DL= { dp: [r.split(f) for f in fnz if f.endswith(FLEXT)] for dp, dn, fnz in os.w
 # LL= [dp [f for dp, dn, fnz in os.walk(PATH) for f in fnz ]]
 
 LLSZ=len(DL) # gives number of elements in fqz: i.e. number of fastq.gz file in the PATH
-print LLSZ
-for K in DL:    
-    print "%s (%d): " % (K, len(DL[K]))
-    for J in DL[K]:
-        print " ".join([I for I in J])
+
+# OK lets sort each LofL
+# for D in DL:
+#     for I in DL[D]:
+# 
+#     DLLSZ=len(DL[D]for D in DL:
+#     if DL[D
+#     DL[D].sort(key= lambda col
+# developer output
+# print LLSZ
+# for K in DL:    
+#     print "%s (%d): " % (K, len(DL[K]))
+#     for J in DL[K]:
+#         print "".join([I for I in J])
+#     print
+    # Template
+    # print "%s: %s" % (K, " ".join([I for I in DL[K]]))
+
+# NOTES: DL is the dictionary wiht the full path, its value is a list of of file names split up
+
+# this will print out the prefixes. Easy enough to add the next token, if necessary.
+# print ">>> fastq.gz prefixes in root directory:"
+# print "%s (%d): " % (PATH, len(DL[PATH]))
+# for J in DL[PATH]:
+#     print "%s "% J[0],
+# print
+
+# We creat two containers, one a set of unique names, prefixes for each readpair, which will be iterated over, and then a dict based n thse unique names which will be appended to.
+UIST=set()
+DL2={}
+for J in DL[PATH]:
+    UIST.add(J[0])
+    DL2[J[0]]=[]
+
+# we're going to go by threes: DIRNAME, PAIR1FNAME, PAIR2FNAME, repeat. Unfortunately P1 and P2 may not be in the right order.
+# attach the main directory
+for J in DL2:
+    DL2[J].append(PATH)
+
+for I in DL[PATH]:
+    for J in UIST:
+        if J == I[0]:
+            DL2[J].append("".join([K for K in I]))
+
+for J in DL2:
+    print "%s: " % J,
+    for K in DL2[J]:
+        print "%s " % K,
     print
 
-    # print "%s: %s" % (K, " ".join([I for I in DL[K]]))
+
+# NDL={} # new dict of lists
+# for M in UIST:
+#     # now float through root directory
+#     NDL[M]=[]
+#     for RD in DL[PATH]:
+#         print len(RD)
+#         if RD[0] == M:
+#             NDL[M].append("%s/%s" % (PATH,"".join([I for I in RD])))
+
+# for K in NDL:
+#     print "%s: " % K,
+#     for J in NDL[K]:
+#        print len(J)
+        # print " ".join([I for I in J])
+#    print
+
+#     NDL[M]=[]
+#     if(
+#     NDL[M].append(
+# for K in DL:
+#     PF=r.split(K)[-3]
+#     NDL[PF]=[]
+#     for M in UIST:
+#         if M == PF:
+#             NDL[PF].append("".joinDL[K]
+#     
+#     NDL{)[-3]
+#     print "%s now" % r.split(K)[-3]
