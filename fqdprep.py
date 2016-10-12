@@ -11,7 +11,6 @@ PATH=sys.argv[1]
 FLEXT='.fastq.gz' # file extension of interest
 # FLEXT='.txt' # file extension of interest
 r=regex.compile(r'(?:([/_.])+)')
-r2=regex.compile(r'_paired') # trimmomatic particularity
 
 # what follows is a list comprehension of a loop over the files in a subdirectory
 # and a loop over the subdirectories of the path, with the path and filename finally being joined together
@@ -72,7 +71,6 @@ for I in DL[PATH]:
     for J in UIST:
         if J == I[0]:
             DL2[J].append("".join([K for K in I]))
-            break # found this particular unique prefix in DL[PATH] want to travel through the others now.
 
 # Procedure: Ensure right pair order
 # So unfortunately we cannot depend on the pairs being sorted in relation to each other.
@@ -87,33 +85,34 @@ for J in DL2:
         if(DL2[J][I*3+1]>DL2[J][I*3+2]):
             DL2[J][I*3+2], DL2[J][I*3+1] = DL2[J][I*3+1], DL2[J][I*3+2]
 
-# OK now we want to add the directories that are named after the samplepair.
-for D in DL:
-    if D == PATH:
-        continue # done already.
-    PF=r.split(D)[-3]
-    for J in UIST:
-        if J == PF:
-            DL2[J].append(D)
-            for K in DL[D]:
-                print " ".join([I for I in K])
-                if K[4] == 'paired':
-                    DL2[J].append("".join([I for I in K]))
-            break
-            # DL2[J].append("".join([K for K in I]))
-
-# again we want to make sure those pairs are in correct order. Actually above re-ordering can be done in one shot here
-for J in DL2:
-    JLEN=len(DL2[J])
-    J3L=JLEN/3
-    for I in xrange(J3L):
-        if(DL2[J][I*3+1] > DL2[J][I*3+2]):
-            DL2[J][I*3+2], DL2[J][I*3+1] = DL2[J][I*3+1], DL2[J][I*3+2]
-
 for J in DL2:
     print "%s: %s" % (J, " ".join([I for I in DL2[J]]))
 
-# So at the end of this we have a dict whose keys are the prefix to each sample.
-# The dict consists of a list for each key, arranged in groups of three. The first group is
-# the root directory and the two readsamples, then the directory in which the trimmomatic reads are kept.
+# NDL={} # new dict of lists
+# for M in UIST:
+#     # now float through root directory
+#     NDL[M]=[]
+#     for RD in DL[PATH]:
+#         print len(RD)
+#         if RD[0] == M:
+#             NDL[M].append("%s/%s" % (PATH,"".join([I for I in RD])))
 
+# for K in NDL:
+#     print "%s: " % K,
+#     for J in NDL[K]:
+#        print len(J)
+        # print " ".join([I for I in J])
+#    print
+
+#     NDL[M]=[]
+#     if(
+#     NDL[M].append(
+# for K in DL:
+#     PF=r.split(K)[-3]
+#     NDL[PF]=[]
+#     for M in UIST:
+#         if M == PF:
+#             NDL[PF].append("".joinDL[K]
+#     
+#     NDL{)[-3]
+#     print "%s now" % r.split(K)[-3]
