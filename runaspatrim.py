@@ -86,11 +86,12 @@ for SAPF in DL2:
 		cmd += "\n#$ -cwd"
 		cmd += "\n#$ -j y"
 		cmd += "\n#$ -S /bin/bash"
+		cmd += "\n#$ -N qspades0"
 		cmd += "\n#$ -q all.q"
 		cmd += "\n#$ -pe multi 8"
 		cmd += "\nmodule load SPAdes"
-		cmd += "\nR1=" +DL2[SAPF][3]+ DL2[SAPF][4]
-		cmd += "\nR2=" +DL2[SAPF][3]+ DL2[SAPF][5]
+		cmd += "\nR1=" +DL2[SAPF][3]+ "/" +DL2[SAPF][4]
+		cmd += "\nR2=" +DL2[SAPF][3]+ "/" +DL2[SAPF][5]
 		cmd += "\nON=" +DL2[SAPF][3]
 		cmd += "\nspades.py -t $NSLOTS -o $ON --pe1-1 $R1 --pe1-2 $R2"
 		
