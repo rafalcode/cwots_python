@@ -4,7 +4,7 @@ import os, regex, sys
 
 argquan=len(sys.argv)
 if argquan != 2:
-    print "This script requires one argument: the target directory on which you'd like the walk performed"
+    print "This script requires one argument: the target directory inside which the fastq.gz readsets will be identified"
     sys.exit(2)
 
 # Primarily we expected absolute paths .. but this conditional will take care of relative paths too.
