@@ -41,12 +41,6 @@ if not DL or not DL[PATH]:
 # We can expect different name formats and boh single and pair-end reads
 # easiier to treat these separately by settign up
 
-for K in DL:
-	for I in DL[K]:
-		print "%d " % len(I),
-	print
-
-
 LLSZ=len(DL) # gives number of elements in fqz: i.e. number of fastq.gz file in the PATH
 
 # We create two containers, one a set of unique names, prefixes for each readpair, which will be iterated over, and then a dict based n thse unique names which will be appended to.
@@ -62,9 +56,6 @@ for J in DL[PATH]:
 		DL0[J[0]]=[]
 	else:
 		print "fastq.gz filename format is unrecognised. Sorry, this is due to this python code not being robust enough"
-print len(UIST)
-
-
 
 # Note: why 5 and 13? well it's just the format of the filenames currently beign dealt with:
 # 362711M_S7_L001_R2_001.fastq.gz will come out as 13 strings (note forward lookup regex, saves the tokens as list members as well
