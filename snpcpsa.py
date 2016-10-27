@@ -3,28 +3,35 @@
 import os, regex, sys
 
 argquan=len(sys.argv)
-if argquan != 2:
-	print "This script requires one argument: the target directory inside which the fastq.gz readsets will be identified"
+if arguqan != 1 and argquan != 2:
+	print "This script can be run with zero or one argument. With zero arguments or if 1 argumentts the \".\", the current directory will be use to search for fastq.gz files"
+	print "The first argument neess to be a directory path because this script works by directories"
 	sys.exit(2)
 
-# Primarily we expected absolute paths .. but the followin conditiona codeblock will take care of relative paths too.
-lc1=sys.argv[1][0]
-a1sz = len(sys.argv[1])
-if a1sz > 1:
-	lc2=sys.argv[1][1]
-	# OK. now argv1 has more than one character
-	if lc1 == '/':
+# Primarily we expected absolute paths .. but the following condition, a codeblock will take care of relative paths too.
+if argquan == 1:
 		PATH=os.getcwd()
-	elif lc1 == '.' and lc2 == '/':
-		PATH=os.getcwd() +sys.argv[1][1:]
-	else:
-		PATH=os.getcwd() +"/"+ sys.argv[1]
 else:
-	if lc1 == '.':
-		PATH=os.getcwd()
+	lc1=sys.argv[1][0]
+	a1sz = len(sys.argv[1])
+	if a1sz ==1:
+		if lc1 == '.':
+			PATH=os.getcwd()
+		else:
+			print "If argument is a single character, only the dot, i.e. CWD, is accepted."
+			sys.exit(2)
 	else:
-		print "If argument is a single character, only the dot, i.e. CWD, is accepted."
-		sys.exit(2)
+		# OK. now argv1 has more than one character
+		lc2=sys.argv[1][1]
+		if lc1 == '/':
+			PATH=sys.argv[1]
+		elif lc1 == '.' and lc2 == '/':
+			if a1sz == 2:
+				print "Sorry, the ./ argument indicate relative path and cannot be aloner. Use . or no arguments, if you want current directory"
+				sys.exit(2)
+			PATH=os.getcwd() +sys.argv[1][1:]
+		else:
+			PATH=os.getcwd() +"/"+ sys.argv[1]
 
 print PATH
 
