@@ -1,11 +1,10 @@
 #!/usr/bin/env python2.7
-# Getting to know os.walk
 import os, regex, sys
 
 argquan=len(sys.argv)
-if arguqan != 1 and argquan != 2:
+if argquan != 1 and argquan != 2:
 	print "This script can be run with zero or one argument. With zero arguments or if 1 argumentts the \".\", the current directory will be use to search for fastq.gz files"
-	print "The first argument neess to be a directory path because this script works by directories"
+	print "The first argument needs to be a directory path because this script works by directories"
 	sys.exit(2)
 
 # Primarily we expected absolute paths .. but the following condition, a codeblock will take care of relative paths too.
@@ -20,6 +19,9 @@ else:
 		else:
 			print "If argument is a single character, only the dot, i.e. CWD, is accepted."
 			sys.exit(2)
+	elif a1sz == 3:
+		if sys.argv[1][0] == '.' and sys.argv[1][1] == '.' and sys.argv[1][2] == '/':
+			PATH="/".join(os.getcwd().split("/")[:-1])
 	else:
 		# OK. now argv1 has more than one character
 		lc2=sys.argv[1][1]
@@ -30,8 +32,11 @@ else:
 				print "Sorry, the ./ argument indicate relative path and cannot be aloner. Use . or no arguments, if you want current directory"
 				sys.exit(2)
 			PATH=os.getcwd() +sys.argv[1][1:]
+		elif sys.argv[1][0] == '.' and sys.argv[1][1] == '.' and sys.argv[1][2] == '/':
+			# this deals with a path when it's preceded by ../
+			PATH="/".join(os.getcwd().split("/")[:-1]) + '/' + "/".join(sys.argv[1].split("/")[2:])
 		else:
-			PATH=os.getcwd() +"/"+ sys.argv[1]
+			PATH=os.getcwd() +'/'+ sys.argv[1]
 
 print PATH
 
@@ -54,7 +59,7 @@ LLSZ=len(DL) # gives number of elements in fqz: i.e. number of fastq.gz file in 
 UIST=set()
 DL0={} # for our single paired reads
 DL2={} # for our pair-end reads
-print len(DL[PATH])
+print str(len(DL[PATH])) + " fastq.gz file have been found in the specified directory"
 for J in DL[PATH]:
 	UIST.add(J[0])
 	if len(J) ==13:
