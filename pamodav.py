@@ -10,6 +10,7 @@ if argquan != 2:
     print "This script requires one argument: input filename"
     sys.exit(2)
 
+RGX0=regex.compile(r'^-') # this is the separator
 RGX=regex.compile(r' +') # this is the separator
 with open(sys.argv[1]) as x: FL = x.read().splitlines()
 
