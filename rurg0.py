@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # capturing Russian
 # this is allows expanded use of the with statement:
+# note python3 !
 import sys, re
 
 argquan=len(sys.argv)
