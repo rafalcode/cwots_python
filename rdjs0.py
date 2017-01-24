@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.7
-# read a file into memory, only if its lines conform to a certain regex.
+# read a job script file and pull out the relevant options
 from __future__ import with_statement
 import sys, regex
 
@@ -9,11 +9,14 @@ if argquan != 2:
     sys.exit(2)
 
 OL=[] # option list
-RGX=regex.compile(r'^$# (.+)') # this is the separator
+RGX=regex.compile(r'^#\$ (.+)') # this is the separator
+# RGX=regex.compile(r'^(.+)') # this is the separator
 with open(sys.argv[1]) as fp:
     for everyline in fp:
         m=RGX.match(everyline)
         if m is not None:
-            OL.append(m.capture(1))
+            print "a match"
+            OL.append(m.group(1))
 
 print len(OL)
+print OL
