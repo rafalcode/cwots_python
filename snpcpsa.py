@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7
 import os, regex, sys
+import pdb
 
 argquan=len(sys.argv)
 if argquan != 1 and argquan != 2:
@@ -54,7 +55,7 @@ if not DL or not DL[PATH]:
 # easiier to treat these separately by settign up
 
 LLSZ=len(DL) # gives number of elements in fqz: i.e. number of fastq.gz file in the PATH
-
+pdb.set_trace()
 # We create two containers, one a set of unique names, prefixes for each readpair, which will be iterated over, and then a dict based n thse unique names which will be appended to.
 UIST=set()
 DL0={} # for our single paired reads
