@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python2.7
 from Bio.Emboss.Applications import NeedleCommandline
 from Bio.Emboss.Applications import FNeighborCommandline
 
