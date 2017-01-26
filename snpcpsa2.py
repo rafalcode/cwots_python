@@ -107,7 +107,7 @@ print
 print "[Metadata]"
 idxnm=1
 yr=14
-r2=regex.compile(r'.+(1[1-6])\d*$')
+r2=regex.compile(r'.+(1[1-6])\w*\w*$')
 for J in UIST:
 	m=r2.match(J)
 	if m is not None:
@@ -115,3 +115,10 @@ for J in UIST:
 		yr=m.group(1)
 	print "%s=Staph:%03d;Group:community;Region:Fife;Year:%2d%2d" % (J, idxnm, 20,  int(yr))
 	idxnm+=1
+
+TAIL='''
+[Settings]
+reference=/storage/home/users/pak9/staph20j/MSSA476e.fasta
+sickle = t:sanger,q:20,l:10
+'''
+print TAIL
