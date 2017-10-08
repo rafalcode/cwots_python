@@ -19,7 +19,8 @@ pardict = json.loads(slurpf)
 # let's see how many elements the dict has:
 pdl=len(pardict)
 # print "%s %d" % ("length of dict'ed json file is", pdl)
-for i in range(pdl):
+# for i in range(pdl):
+for i in pardict.keys:
     print i
 # for k, v in pardict.iteritems:
 #    print "%s:%s" % (k,v)
