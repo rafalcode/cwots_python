@@ -1,3 +1,5 @@
+#!/usr/bin/env python2.7
+# an attempt to use json on gdc.cancer.gov
 import requests
 import json
 
@@ -5,7 +7,7 @@ file_endpt = 'https://api.gdc.cancer.gov/files/'
 file_uuid = 'd853e541-f16a-4345-9f00-88e03c2dc0bc'
 response = requests.get(file_endpt + file_uuid)
 print json.dumps(response.json(), indent=2)
-# ``` Response
+# ``` Response: you should get
 # {
 #   "data": {
 #     "data_type": "Aligned Reads",
