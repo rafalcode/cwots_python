@@ -1,4 +1,5 @@
 #!/usr/bin/env python2.7
+# exercise in biopython, using "needle" the first and most simple alignment method.
 from Bio.Emboss.Applications import NeedleCommandline
 
 needle_cline = NeedleCommandline(asequence="a0.fa", bsequence="b0.fa", gapopen=10, gapextend=0.5, outfile="needle.txt")

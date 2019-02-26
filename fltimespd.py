@@ -1,11 +1,12 @@
 #!/usr/bin/env python2.7
+# pandas! yes!
 # fltimespd.py
 # File list times as pandas data frame
 # this specific for using on (more or less) ftp long file listings.
 from __future__ import with_statement
 import sys
 from datetime import datetime
-import pandas as pd
+import pandas as pd # practially all pandas programs have a line like that.
 from tabulate import tabulate
 
 argquan=len(sys.argv)

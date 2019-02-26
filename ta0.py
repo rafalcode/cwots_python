@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 # valuable usage of list comprehension here
-# this script does what? converts a table into a html table
+# this script does what? converts a table into a html table, using the tabulate package.
 import sys
 from tabulate import tabulate
 
