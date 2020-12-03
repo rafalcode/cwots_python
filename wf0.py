@@ -23,3 +23,11 @@ print("Frequencies\n" + str(wf) + "\n")
 pa = list(zip(wlst, wf))
 pa = dict(pa)
 print("Pairs\n" + str(pa))
+
+print("Does ++ work? No, but +=1 does")
+pdfcou=0
+pdfcou+=1
+if pdfcou ==1:
+    print("Yes it does.")
+else:
+    print("Nop")
