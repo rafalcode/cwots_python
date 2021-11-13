@@ -12,3 +12,6 @@ and create directories for each pair based on their prefix
 
 # k2.py and derivatives
 taken from the mertz book, particularly how goes about creating a class and what one can do with it.
+
+#brna.py
+simple operations in biopython.
