@@ -37,5 +37,6 @@ RGX=re.compile('(?P<LN>.+)\nNow playing\n(?P<TX>.+)\n(?P<VI>\d+\w) v.+')
 outs= [m.groupdict() for m in re.finditer(RGX, slurpf)]
 
 #print out
+print("%12s %8s     %20s" % ("Duration", "Views", "Titles and comments"))
 for o in outs:
-    print("LN:"+o['LN']+" / TX:"+o['TX']+ " / VI:" +o['VI'])
+    print("%12s %8s     %20s" % (o['LN'], o['VI'], o['TX']))
