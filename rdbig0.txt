@@ -1,0 +1,22 @@
+Reading big files in python
+
+Let's say you want line count cheaply
+
+https://stackoverflow.com/questions/19001402/how-to-count-the-total-number-of-lines-in-a-text-file-using-python/27517681#27517681
+
+Michael Bacon soln using a generator based on chunks
+
+def _make_gen(reader):
+    b = reader(1024 * 1024)
+    while b:
+        yield b
+        b = reader(1024*1024)
+
+def rawpycount(filename):
+    f = open(filename, 'rb')
+    f_gen = _make_gen(f.raw.read) # f i the file handle
+    return sum( buf.count(b'\n') for buf in f_gen )
+
+this is quite an interesting one , in one line actually
+
+num_lines = sum(1 for line in open('myfile.txt'))
