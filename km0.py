@@ -2,6 +2,9 @@
 # from enwik:
 # https://commons.wikimedia.org/wiki/File:Kernel_trick_idea.svg
 # actually an SVM, but don't forget SVMs are subset of kernel methods.
+# also see Eran Raviv about this:
+# https://eranraviv.com/what-is-the-kernel-trick/
+# mightn't have everything but it's really well written.
 import sys 
 
 import numpy as np
